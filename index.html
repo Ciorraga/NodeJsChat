@@ -1,0 +1,148 @@
+<html>
+    <head>
+        <title>
+            Node.js chat
+        </title>
+        <style>
+            #content{
+                display: none;
+            }
+            #chatContent{
+                float: left;
+            }
+            #chat{
+                position: relative;
+                width: 100%;
+                float:left;
+                min-height:100px;
+                height: 90%;
+                overflow: auto;
+            }
+        </style>
+        
+        <script src="https://code.jquery.com/jquery.js"></script>
+        
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+        
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>Node.js Chat<small> Desarrollado por CioRRy </small></h1>
+            </div>
+            
+            <div class="input-group" style="width:300px;text-align:center;margin:0 auto;" id="nickWrap">
+                <input id="nickname" class="form-control input-lg" type="text" placeholder="Enter your username">
+                <span class="input-group-btn">
+                    <button class="btn btn-lg btn-primary" type="submit" id="setNick">OK</button>
+                </span>
+            </div>
+            
+            <div class="alert fade in alert-danger alert-dismissable" data-dismiss="alert" id="login-error" style="display:none;">
+                <button type="button" class="close" id="closeAlert">×</button>
+                That username is already taken. Try again.
+            </div>
+            
+            <div id="content" class="row" style="height: 70%;">
+                <div class="col-md-2"></div>
+                <div id="chatContent" class="col-md-6">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            CHAT    
+                        </div>
+                        <div id="chat" class="panel-body"></div>
+                    </div>
+                    <div>
+                        <form id="sendMessage" class="input-group" style="text-align:center;margin:0 auto;">
+                            <input id="message" class="form-control input-lg" type="text">
+                            <span class="input-group-btn">
+                                <button class="btn btn-lg btn-primary" type="submit">Send</button>
+                            </span>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="col-md-2">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            Users
+                        </div>
+                        <div id="users" class="panel-body"></div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            jQuery(function($) {
+               var socket = io.connect();
+               var $messageForm = $('#sendMessage');
+               var $messageBox = $('#message');
+               var $chat = $('#chat');
+               var $buttonSend = $('#send');
+               
+               var $nickForm = $('#setNick');
+               var $nickBox = $('#nickname');
+               var $users = $('#users');
+               var $closeAlert = $('#closeAlert');
+               
+               
+               
+               $nickForm.click(function(e) {
+                   e.preventDefault();
+                   socket.emit('newUser', $nickBox.val(), function(data) {
+                       if(data) {
+                           $('#nickWrap').hide();
+                           $('#content').show();
+                       } else {
+                           $("#login-error").show();
+                       }
+                   });
+                   $nickBox.val('');
+               });
+               
+               $closeAlert.click(function(e) {
+                    $("#login-error").hide();
+               });
+               
+               $messageForm.submit(function(e) {
+                   e.preventDefault();
+                   if($messageBox.val()!='') socket.emit('sendMessage', $messageBox.val());
+                   $messageBox.val('');
+               });
+               
+               socket.on('newMessage', function(data) {
+                  $chat.append('<b>'+data.nick+":</b> "+data.msg+"<br/>"); 
+               });
+               
+               socket.on('newDisconnect', function(data) {
+                  $chat.append("<center><b>El usuario "+data.nick+" se ha desconectado</b></center>"); 
+               });
+               
+               socket.on('newConnect', function(data) {
+                  $chat.append("<center><b>El usuario "+data.nick+" se conectado</b></center><br/>"); 
+               });
+               
+               socket.on('usernames', function(data) {
+                    var html = '';
+                    for (var username in data) {
+                        html += username + '<br/>';
+                    }
+                    $users.html(html);
+                });
+               
+            });
+            
+        </script>
+    </body>
+</html>
