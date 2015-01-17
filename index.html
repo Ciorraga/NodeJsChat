@@ -14,8 +14,8 @@
                 position: relative;
                 width: 100%;
                 float:left;
-                min-height:100px;
-                height: 90%;
+                
+                height: 100%;
                 overflow: auto;
             }
         </style>
@@ -47,7 +47,7 @@
             
             <div class="alert fade in alert-danger alert-dismissable" data-dismiss="alert" id="login-error" style="display:none;">
                 <button type="button" class="close" id="closeAlert">×</button>
-                That username is already taken. Try again.
+                El nombre de usuario ya está en uso. Escoja otro.
             </div>
             
             <div id="content" class="row" style="height: 70%;">
@@ -116,13 +116,19 @@
                });
                
                $messageForm.submit(function(e) {
-                   e.preventDefault();
-                   if($messageBox.val()!='') socket.emit('sendMessage', $messageBox.val());
-                   $messageBox.val('');
+                    e.preventDefault();
+                    if($messageBox.val()!='') socket.emit('sendMessage', $messageBox.val());
+                    $messageBox.val('');
                });
                
                socket.on('newMessage', function(data) {
-                  $chat.append('<b>'+data.nick+":</b> "+data.msg+"<br/>"); 
+                    $chat.append('<b>'+data.nick+":</b> "+data.msg+"<br/>"); 
+                    var height = 0;
+                    
+                    //Con lo siguiente, conseguimos hacer que haya un autoscroll en nuestro chat
+                    $('#chat').animate({
+                        scrollTop: $('#chat').get(0).scrollHeight
+                    }, 1500);
                });
                
                socket.on('newDisconnect', function(data) {
